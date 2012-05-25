@@ -227,6 +227,12 @@ class reppy(object):
             s = '/' + s
         tmp = re.escape(urllib.unquote(s.replace('%2f', '%252f')))
         return re.compile(tmp.replace('\*', '.*').replace('\$', '$'))
+        
+    def _striprline(self, line):
+        pos = line.find('#')
+        if pos >= 0:
+            line = line[:pos]
+        return line.strip()
     
     def parse(self, s):
         '''Parse the given string and store the resultant rules'''
@@ -247,6 +253,11 @@ class reppy(object):
         curname = '*'
         last    = ''
         for line in s.split('\n'):
+            # Strip comments, skip empty and comment lines
+            line = self._striprline(line)
+            if line == '':
+                continue
+            # Process other lines
             try:
                 match = self.lineRE.match(line)
                 if match:
