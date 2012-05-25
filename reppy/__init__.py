@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #
 # Copyright (c) 2011 SEOmoz
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -123,11 +123,11 @@ class ServerError(Exception):
 class agent(object):
     '''Represents attributes for a given robot'''
     pathRE = re.compile(r'^([^\/]+\/\/)?([^\/]+)?(/?.+?)$', re.M)
-    
+
     def __init__(self):
         self.allowances = []
         self.crawlDelay = None
-    
+
     def allowed(self, url):
         '''Can I fetch a given URL?'''
         match = agent.pathRE.match(url)
@@ -143,9 +143,9 @@ class agent(object):
 class reppy(object):
     '''A class that represents a set of agents, and can select them appropriately.
     Associated with one robots.txt file.'''
-    
+
     lineRE = re.compile('^\s*(\S+)\s*:\s*([^#]*)\s*(#.+)?$', re.I)
-    
+
     def __init__(self, ttl=3600*3, url=None, autorefresh=True, agentString='REPParser/0.1 (Python)'):
         self.reset()
         # When did we last parse this?
@@ -158,7 +158,7 @@ class reppy(object):
         self.agentString = agentString.lower().encode('utf-8')
         # Do we refresh when we expire?
         self.autorefresh = url and autorefresh
-    
+
     def __getattr__(self, name):
         '''So we can keep track of refreshes'''
         if name == 'expired':
@@ -168,7 +168,7 @@ class reppy(object):
         elif self.autorefresh and self._expired():
             self.refresh()
         return self.atts[name.lower()]
-    
+
     def _remaining(self):
         '''How long is left in its life'''
         return self.parsed + self.ttl - time.time()
@@ -176,14 +176,14 @@ class reppy(object):
     def _expired(self):
         '''Has this robots.txt expired?'''
         return self._remaining() < 0
-    
+
     def reset(self):
         '''Reinitialize self'''
         self.atts = {
             'sitemaps' : [],    # The sitemaps we've seen
             'agents'   : {}     # The user-agents we've seen
         }
-    
+
     def refresh(self):
         '''Can only work if we have a url specified'''
         if self.url:
@@ -216,7 +216,7 @@ class reppy(object):
                     self.ttl = 3600
             data = page.read()
             self.parse(data)
-    
+
     def makeREFromString(self, s):
         '''Make a regular expression that matches the patterns expressable in robots.txt'''
         # If the string doesn't start with a forward slash, we'll insert it
@@ -227,13 +227,13 @@ class reppy(object):
             s = '/' + s
         tmp = re.escape(urllib.unquote(s.replace('%2f', '%252f')))
         return re.compile(tmp.replace('\*', '.*').replace('\$', '$'))
-        
+
     def _striprline(self, line):
         pos = line.find('#')
         if pos >= 0:
             line = line[:pos]
         return line.strip()
-    
+
     def parse(self, s):
         '''Parse the given string and store the resultant rules'''
         self.reset()
@@ -244,11 +244,11 @@ class reppy(object):
             s = s.decode('utf-8').lstrip(unicode(codecs.BOM_UTF8, 'utf-8'))
         elif s.startswith(codecs.BOM_UTF16):
             s = s.decode('utf-16')
-        
+
         # The name of the current agent. There are a couple schools of thought here
         # For example, by including a default agent, the robots.txt's author's intent
         # is clearly accommodated if a Disallow line appears before the a User-Agent
-        # line. However, how hard is it to follow the standard? If you're writing a 
+        # line. However, how hard is it to follow the standard? If you're writing a
         # robots.txt, you should be able to write it correctly.
         curname = '*'
         last    = ''
@@ -297,7 +297,7 @@ class reppy(object):
         self.atts['agents'][curname] = cur or agent()
         # Add myself to the global robots dictionary
         addRobot(self)
-        
+
     def findAgent(self, agent):
         '''Find the agent given a string for it'''
         try:
@@ -305,7 +305,7 @@ class reppy(object):
         except:
             pass
         return self.agents.get(agent.lower(), self.agents.get('*'))
-    
+
     def allowed(self, url, agent):
         '''We try to perform a good match, then a * match'''
         a = self.findAgent(agent)
@@ -313,11 +313,11 @@ class reppy(object):
             return a.allowed(url)
         else:
             return [u for u in url if a.allowed(u)]
-    
+
     def disallowed(self, url, agent):
         '''For completeness'''
         return not self.allowed(url, agent)
-    
+
     def crawlDelay(self, agent):
         '''How fast can this '''
         a = self.findAgent(agent)
